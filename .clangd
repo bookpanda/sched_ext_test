@@ -1,0 +1,25 @@
+# sched_ext headers live in third_party (sched-ext/scx + libbpf).
+# -DLSP makes scx/common.bpf.h include the generated vmlinux.h.
+CompileFlags:
+  Add:
+    - -I../third_party/scx/scheds/include
+    - -I../third_party/libbpf
+    - -I../third_party/libbpf/include/uapi
+    - -Wno-unknown-attributes
+    - -Wno-unused-function
+---
+If:
+  PathMatch: .*\.bpf\.c
+CompileFlags:
+  Add:
+    - -xc
+    - -DLSP
+    - -D__TARGET_ARCH_x86
+    - -D__BPF_TRACING__
+    - -target
+    - bpf
+---
+If:
+  PathMatch: third_party/.*
+Index:
+  Background: Skip
