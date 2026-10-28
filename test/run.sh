@@ -11,7 +11,7 @@ fi
 sched=$1
 root=$(cd "$(dirname "$0")/.." && pwd)
 schbench=$(cd "$root/.." && pwd)/schbench/schbench
-out="$root/test/results/$(date +%H:%M-%d-%m-%Y)-${sched}"
+out="$root/test/results/$(date +%Hh%M-%d-%m-%Y)-${sched}"
 
 scx="$root/simple/build/scx_simple"
 
@@ -67,7 +67,8 @@ fi
 
 run_bench() {
 	local name=$1
-	shift
+	shift # drops $1 and slides the rest down ($@)
+    echo "⏰ running $name..."
 	mpstat -P ALL 1 >"$out/mpstat-${name}.txt" &
 	mpstat_pid=$!
 	sudo perf stat -o "$out/perf-stat-${name}.txt" \
@@ -76,11 +77,13 @@ run_bench() {
 	kill "$mpstat_pid" 2>/dev/null || true
 	wait "$mpstat_pid" 2>/dev/null || true
 	mpstat_pid=
+    echo "✅ done $name, plotting mpstat..."
 	python3 "$root/test/plot_mpstat.py" \
 		"$out/mpstat-${name}.txt" \
 		"$out/mpstat-${name}.svg"
 }
 
+# $1 is 1st arg, $@ is all args
 run_bench stress-ng stress-ng --cpu 0 --timeout 60s --metrics-brief
 run_bench schbench "$schbench" -m 1 -t "$(nproc)" -r 60
 
