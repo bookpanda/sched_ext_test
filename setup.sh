@@ -18,3 +18,9 @@ sudo apt install -y \
   linux-headers-$(uname -r) \
   sysstat \
   time
+
+cd "$(dirname "$0")/.."
+git clone https://github.com/masoncl/schbench.git
+cd schbench
+make
+./schbench --help

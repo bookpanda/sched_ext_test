@@ -15,4 +15,5 @@ cat /sys/kernel/sched_ext/root/events
 sudo ./simple/build/scx_simple 
 stress-ng --cpu 0 --timeout 60s --metrics-brief 2>&1 | tee stress-ng.log
 
+../schbench/schbench -m 1 -t "$(nproc)" -r 60 2>&1 | tee schbench.log
 ```
