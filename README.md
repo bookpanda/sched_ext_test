@@ -1,6 +1,6 @@
 # sched_ext_test
 ```bash
-sudo apt-get install -y clang
+./setup.sh
 bear -- make
 
 cat /sys/kernel/sched_ext/state
@@ -10,3 +10,9 @@ cat /sys/kernel/sched_ext/root/ops
 cat /sys/kernel/sched_ext/root/events
 ```
 
+## testing
+```bash
+sudo ./simple/build/scx_simple 
+stress-ng --cpu 0 --timeout 60s --metrics-brief 2>&1 | tee stress-ng.log
+
+```
