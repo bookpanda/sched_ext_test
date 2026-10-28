@@ -13,6 +13,9 @@ CLANG ?= clang
 CC ?= gcc
 
 OUT := build
+# Running kernel is 7.0; its BTF has no sub_attach/sub_detach/sub_cgroup_id.
+# The 7.1 headers still expect those members so SCX_OPS_OPEN can clear them.
+VMLINUX_LOCAL := $(OUT)/vmlinux.h
 BPF_OBJ := $(OUT)/scx_simple.bpf.o
 SKEL := $(OUT)/scx_simple.bpf.skel.h
 BIN := $(OUT)/scx_simple
@@ -21,7 +24,7 @@ SYS_INCLUDES := $(shell $(CLANG) -v -E - </dev/null 2>&1 \
 	| sed -n '/<...> search starts here:/,/End of search list./{ s| \(/.*\)|-idirafter \1|p }')
 
 BPF_CFLAGS := -g -O2 -target bpf -D__TARGET_ARCH_$(ARCH) -mlittle-endian \
-	-I$(SCX_INC) -I$(SCX_INC)/bpf-compat -I$(SCX_GENINC) \
+	-I$(OUT) -I$(SCX_INC) -I$(SCX_INC)/bpf-compat -I$(SCX_GENINC) \
 	-I$(LINUX_SRC)/tools/include/uapi -I$(LINUX_SRC)/include \
 	$(SYS_INCLUDES) \
 	-Wall -Wno-compare-distinct-pointer-types -Wno-microsoft-anon-tag \
@@ -38,7 +41,11 @@ all: $(BIN)
 kernel-headers:
 	$(MAKE) -C $(SCX_DIR) $(VMLINUX_H)
 
-$(BPF_OBJ): scx_simple.bpf.c | kernel-headers $(OUT)
+# sched_ext_ops gained these fields in 7.1, ahead of cpu_online and name.
+$(VMLINUX_LOCAL): $(VMLINUX_H) patch_vmlinux.py | kernel-headers $(OUT)
+	python3 patch_vmlinux.py $(VMLINUX_H) $@
+
+$(BPF_OBJ): scx_simple.bpf.c $(VMLINUX_LOCAL) | $(OUT)
 	$(CLANG) $(BPF_CFLAGS) -c $< -o $@
 
 $(SKEL): $(BPF_OBJ) | kernel-headers
