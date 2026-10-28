@@ -1,10 +1,14 @@
-# sched_ext headers live in third_party (sched-ext/scx + libbpf).
-# -DLSP makes scx/common.bpf.h include the generated vmlinux.h.
+# sched_ext headers come from the course kernel. -isystem keeps diagnostics
+# in that tree out of this repo. Do not define LSP: common.bpf.h would then
+# include ../vmlinux.h, which is not where the kernel generates it.
 CompileFlags:
   Add:
-    - -I../third_party/scx/scheds/include
-    - -I../third_party/libbpf
-    - -I../third_party/libbpf/include/uapi
+    - -isystem../linux/tools/sched_ext/include
+    - -isystem../linux/tools/sched_ext/include/bpf-compat
+    - -isystem../linux/tools/sched_ext/build/include
+    - -isystem../linux/tools/include/uapi
+    - -isystem../linux/include
+    - -Isimple/build
     - -Wno-unknown-attributes
     - -Wno-unused-function
 ---
@@ -13,13 +17,14 @@ If:
 CompileFlags:
   Add:
     - -xc
-    - -DLSP
     - -D__TARGET_ARCH_x86
     - -D__BPF_TRACING__
     - -target
     - bpf
 ---
 If:
-  PathMatch: third_party/.*
+  PathMatch: .*/linux/.*
+Diagnostics:
+  Suppress: "*"
 Index:
   Background: Skip
