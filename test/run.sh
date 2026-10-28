@@ -1,5 +1,4 @@
 #!/bin/bash
-# One benchmark run under the default scheduler or scx_simple.
 # usage: ./test/run.sh linux|simple
 
 set -euo pipefail
@@ -12,8 +11,9 @@ fi
 sched=$1
 root=$(cd "$(dirname "$0")/.." && pwd)
 schbench=$(cd "$root/.." && pwd)/schbench/schbench
+out="$root/test/results/$(date +%H:%M-%d-%m-%Y)-${sched}"
+
 scx="$root/simple/build/scx_simple"
-out="$root/test/results/$(date +%H-%M-%S-%d-%m-%Y)-${sched}"
 
 if [[ ! -x "$schbench" ]]; then
 	echo "missing schbench at $schbench" >&2
@@ -70,7 +70,7 @@ run_bench() {
 	shift
 	mpstat -P ALL 1 >"$out/mpstat-${name}.txt" &
 	mpstat_pid=$!
-	perf stat -o "$out/perf-stat-${name}.txt" \
+	sudo perf stat -o "$out/perf-stat-${name}.txt" \
 		-e task-clock,context-switches,cpu-migrations,page-faults \
 		-- "$@" >"$out/${name}.txt" 2>&1
 	kill "$mpstat_pid" 2>/dev/null || true
