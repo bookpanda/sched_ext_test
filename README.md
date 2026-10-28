@@ -16,7 +16,7 @@ Use schbench for latency percentiles and more targeted tracing (bpftrace) when y
 ```bash
 sudo ./simple/build/scx_simple 
 
-# test everything
+# test everything: <scheduler> <cores>
 ./test/run.sh linux 4
 ./test/run.sh simple 4
 

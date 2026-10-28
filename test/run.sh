@@ -108,8 +108,10 @@ run_bench() {
 
 # $1 is 1st arg, $@ is all args
 run_bench stress-ng taskset -c "$work_cpus" \
-	stress-ng --cpu "$cores" --taskset "$work_cpus" --timeout 60s --metrics-brief
+	stress-ng --cpu "$cores" --taskset "$work_cpus" --timeout 10s --metrics-brief
 run_bench schbench taskset -c "$work_cpus" \
-	"$schbench" -m 1 -t "$cores" -r 60
+	"$schbench" -m 1 -t "$cores" -r 10
 
-echo "$out"
+"$python" "$root/test/summarize.py" "$out"
+
+echo "👌 done, results in $out"
