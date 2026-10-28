@@ -19,3 +19,10 @@ core experiment should run two workloads simultaneously:
 most compelling results will be plots of Memcached p99 latency and side-load throughput against offered Memcached load
 
 Add SLO and CPU-utilization markers, plus a time-series plot showing how the scheduler reacts to a sudden workload increase.
+
+your side load should include more than one type of contention. 
+- A CPU-heavy load tests CPU scheduling
+- a memory-bandwidth-heavy load tests whether your scheduler can protect latency even when tasks contend for memory bandwidth, which CPU scheduling alone cannot directly partition.
+
+can run server/client on the same machine, or on different machines.
+begin with local TCP loopback. First prove that your scheduler can preserve Memcached's tail latency while allowing the side load to use otherwise available CPU capacity.
