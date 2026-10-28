@@ -130,6 +130,51 @@ def parse_schbench(path):
     }
 
 
+MPSTAT_FIELDS = ("usr", "nice", "sys", "iowait", "irq", "soft", "idle")
+
+
+def parse_mpstat_avg(path):
+    """Average % time in each state across the CPUs recorded in an mpstat log."""
+    columns = None
+    time_tokens = None
+    totals = {name: 0.0 for name in MPSTAT_FIELDS}
+    cpus = set()
+    samples = 0
+    intervals = set()
+
+    for raw in Path(path).read_text().splitlines():
+        parts = raw.split()
+        if not parts or parts[0].startswith("Linux") or parts[0] == "Average:":
+            continue
+        if "CPU" in parts and any(part.startswith("%") for part in parts):
+            cpu_at = parts.index("CPU")
+            columns = {}
+            for index, name in enumerate(parts):
+                if name.startswith("%"):
+                    columns[name[1:]] = index
+            time_tokens = cpu_at
+            continue
+        if columns is None or len(parts) <= time_tokens:
+            continue
+        cpu = parts[time_tokens]
+        if cpu == "all" or not cpu.isdigit():
+            continue
+        cpus.add(int(cpu))
+        intervals.add(" ".join(parts[:time_tokens]))
+        samples += 1
+        for name in MPSTAT_FIELDS:
+            totals[name] += float(parts[columns[name]])
+
+    if samples == 0:
+        raise SystemExit(f"no per-CPU mpstat rows in {path}")
+    averages = {name: round(totals[name] / samples, 2) for name in MPSTAT_FIELDS}
+    return {
+        "cpus": sorted(cpus),
+        "intervals": len(intervals),
+        **averages,
+    }
+
+
 def summarize(result_dir):
     directory = Path(result_dir)
     benches = []
@@ -138,12 +183,14 @@ def summarize(result_dir):
             "bench": "stress-ng",
             "stress_ng": parse_stress_ng(directory / "stress-ng.txt"),
             "perf": parse_perf_stat(directory / "perf-stat-stress-ng.txt"),
+            "mpstat": parse_mpstat_avg(directory / "mpstat-stress-ng.txt"),
         })
     if (directory / "schbench.txt").exists():
         benches.append({
             "bench": "schbench",
             "schbench": parse_schbench(directory / "schbench.txt"),
             "perf": parse_perf_stat(directory / "perf-stat-schbench.txt"),
+            "mpstat": parse_mpstat_avg(directory / "mpstat-schbench.txt"),
         })
     if not benches:
         raise SystemExit(f"no benchmark logs in {directory}")
