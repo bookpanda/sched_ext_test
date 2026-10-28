@@ -1,17 +1,17 @@
 #!/bin/bash
-# usage: ./test/run.sh linux|simple <cores>
+# usage: ./test/run.sh <cores> linux|simple
 # The benchmark is pinned to CPUs 0..cores-1. mpstat, perf, and the
 # scx_simple loader run on the remaining CPUs.
 
 set -euo pipefail
 
-if [[ $# -ne 2 || ( "$1" != linux && "$1" != simple ) ]]; then
-	echo "usage: $0 linux|simple <cores>" >&2
+if [[ $# -ne 2 || ( "$2" != linux && "$2" != simple ) ]]; then
+	echo "usage: $0 <cores> linux|simple" >&2
 	exit 1
 fi
 
-sched=$1
-cores=$2
+cores=$1
+sched=$2
 if [[ ! "$cores" =~ ^[1-9][0-9]*$ ]]; then
 	echo "cores must be a positive integer" >&2
 	exit 1
