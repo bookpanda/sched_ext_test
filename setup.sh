@@ -1,5 +1,7 @@
 #!/bin/bash
 
+root=$(cd "$(dirname "$0")" && pwd)
+
 sudo apt update
 
 sudo apt install -y \
@@ -17,9 +19,13 @@ sudo apt install -y \
   pkg-config \
   linux-headers-$(uname -r) \
   sysstat \
-  time
+  time \
+  python3-venv
 
-cd "$(dirname "$0")/.."
+python3 -m venv "$root/.venv"
+"$root/.venv/bin/pip" install matplotlib
+
+cd "$root/.."
 git clone https://github.com/masoncl/schbench.git
 cd schbench
 make

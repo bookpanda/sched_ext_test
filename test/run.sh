@@ -65,6 +65,11 @@ if [[ "$sched" == simple ]]; then
 	fi
 fi
 
+python="$root/.venv/bin/python"
+if [[ ! -x "$python" ]]; then
+    python=python3
+fi
+
 run_bench() {
 	local name=$1
 	shift # drops $1 and slides the rest down ($@)
@@ -78,9 +83,10 @@ run_bench() {
 	wait "$mpstat_pid" 2>/dev/null || true
 	mpstat_pid=
     echo "✅ done $name, plotting mpstat..."
-	python3 "$root/test/plot_mpstat.py" \
+	
+	"$python" "$root/test/plot_mpstat.py" \
 		"$out/mpstat-${name}.txt" \
-		"$out/mpstat-${name}.svg"
+		"$out/mpstat-${name}.png"
 }
 
 # $1 is 1st arg, $@ is all args

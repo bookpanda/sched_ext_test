@@ -1,6 +1,7 @@
 # sched_ext_test
 ```bash
 ./setup.sh
+# select python interpreter as the one in ./.venv/bin/python
 bear -- make
 
 cat /sys/kernel/sched_ext/state
@@ -14,6 +15,12 @@ cat /sys/kernel/sched_ext/root/events
 Use schbench for latency percentiles and more targeted tracing (bpftrace) when you need to investigate why latency changed.
 ```bash
 sudo ./simple/build/scx_simple 
+
+# test everything
+./test/run.sh linux
+./test/run.sh simple
+
+
 
 # CPU throughput
 stress-ng --cpu 0 --timeout 60s --metrics-brief 2>&1 | tee stress-ng.log

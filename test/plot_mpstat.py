@@ -63,71 +63,31 @@ def parse_mpstat(path):
     return elapsed, series
 
 
-COLORS = {
-    "usr": "#1f77b4",
-    "nice": "#ff7f0e",
-    "sys": "#2ca02c",
-    "iowait": "#d62728",
-    "irq": "#9467bd",
-    "soft": "#8c564b",
-    "idle": "#7f7f7f",
-}
-
-
 def plot(path, dest):
+    import matplotlib
+
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+
     elapsed, series = parse_mpstat(path)
-    width, height = 960, 480
-    left, right, top, bottom = 70, 160, 30, 50
-    plot_w = width - left - right
-    plot_h = height - top - bottom
-    x_max = max(elapsed) or 1
-
-    def x_of(second):
-        return left + plot_w * second / x_max
-
-    def y_of(percent):
-        return top + plot_h * (1 - percent / 100)
-
-    parts = [
-        '<?xml version="1.0" encoding="UTF-8"?>',
-        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">',
-        '<rect width="100%" height="100%" fill="white"/>',
-        f'<text x="{left + plot_w / 2}" y="{height - 12}" text-anchor="middle" font-size="14">time (s)</text>',
-        f'<text x="18" y="{top + plot_h / 2}" text-anchor="middle" font-size="14" transform="rotate(-90 18 {top + plot_h / 2})">% average CPU</text>',
-    ]
-    for tick in range(0, 101, 25):
-        y = y_of(tick)
-        parts.append(f'<line x1="{left}" y1="{y:.1f}" x2="{left + plot_w}" y2="{y:.1f}" stroke="#e0e0e0"/>')
-        parts.append(f'<text x="{left - 8}" y="{y + 4:.1f}" text-anchor="end" font-size="12">{tick}</text>')
-    parts.append(f'<text x="{left}" y="{height - bottom + 18}" font-size="12">0</text>')
-    parts.append(
-        f'<text x="{left + plot_w}" y="{height - bottom + 18}" text-anchor="end" font-size="12">{x_max:.0f}</text>'
-    )
-    parts.append(
-        f'<rect x="{left}" y="{top}" width="{plot_w}" height="{plot_h}" fill="none" stroke="#333"/>'
-    )
+    figure, axis = plt.subplots(figsize=(10, 5))
     for name in FIELDS:
-        points = " ".join(
-            f"{x_of(second):.1f},{y_of(percent):.1f}"
-            for second, percent in zip(elapsed, series[name])
-        )
-        parts.append(
-            f'<polyline fill="none" stroke="{COLORS[name]}" stroke-width="2" points="{points}"/>'
-        )
-    legend_x = left + plot_w + 16
-    for index, name in enumerate(FIELDS):
-        y = top + 16 + index * 22
-        parts.append(f'<line x1="{legend_x}" y1="{y}" x2="{legend_x + 18}" y2="{y}" stroke="{COLORS[name]}" stroke-width="3"/>')
-        parts.append(f'<text x="{legend_x + 24}" y="{y + 4}" font-size="13">{name}</text>')
-    parts.append("</svg>")
-    Path(dest).write_text("\n".join(parts) + "\n")
+        axis.plot(elapsed, series[name], label=name)
+    axis.set_xlabel("time (s)")
+    axis.set_ylabel("% average CPU")
+    axis.set_ylim(0, 100)
+    axis.legend(loc="upper right")
+    axis.grid(True, alpha=0.3)
+    figure.tight_layout()
+    figure.savefig(dest)
+    plt.close(figure)
 
 
 def main():
     if len(sys.argv) not in (2, 3):
         raise SystemExit(f"usage: {sys.argv[0]} mpstat.txt [mpstat.png]")
     source = Path(sys.argv[1])
-    dest = Path(sys.argv[2]) if len(sys.argv) == 3 else source.with_suffix(".svg")
+    dest = Path(sys.argv[2]) if len(sys.argv) == 3 else source.with_suffix(".png")
     plot(source, dest)
 
 
