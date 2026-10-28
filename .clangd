@@ -4,10 +4,7 @@
 CompileFlags:
   Add:
     - -isystem../linux/tools/sched_ext/include
-    - -isystem../linux/tools/sched_ext/include/bpf-compat
     - -isystem../linux/tools/sched_ext/build/include
-    - -isystem../linux/tools/include/uapi
-    - -isystem../linux/include
     - -Isimple/build
     - -Wno-unknown-attributes
     - -Wno-unused-function
@@ -16,6 +13,9 @@ If:
   PathMatch: .*\.bpf\.c
 CompileFlags:
   Add:
+    - -isystem../linux/tools/sched_ext/include/bpf-compat
+    - -isystem../linux/tools/include/uapi
+    - -isystem../linux/include
     - -xc
     - -D__TARGET_ARCH_x86
     - -D__BPF_TRACING__

@@ -4,7 +4,6 @@
  * Copyright (c) 2022 Tejun Heo <tj@kernel.org>
  * Copyright (c) 2022 David Vernet <dvernet@meta.com>
  */
-#include "scx_simple.bpf.skel.h"
 #include <assert.h>
 #include <bpf/bpf.h>
 #include <libgen.h>
@@ -12,6 +11,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <unistd.h>
+#include "scx_simple.bpf.skel.h"
 
 const char help_fmt[] =
     "A simple sched_ext scheduler.\n"
